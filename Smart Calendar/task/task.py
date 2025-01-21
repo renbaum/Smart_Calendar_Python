@@ -25,7 +25,7 @@ if __name__ == "__main__":
                 case "delete":
                     print("Not implemented yet")
                 case _:
-                    raise ValueError("Unknown command")
+                    raise ValueError("Incorrect command")
             print(storage)
             break
         except ValueError as e:
