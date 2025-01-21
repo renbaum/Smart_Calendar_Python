@@ -14,7 +14,8 @@ if __name__ == "__main__":
             command = input("Enter the command (add, view, delete, exit): ")
             match command.lower():
                 case "add":
-                    lst = factory.create_reminders_list("note")
+                    reminder_type = input("Specify type (note, birthday): ")
+                    lst = factory.create_reminders_list(reminder_type)
                     storage.add_reminders_list(lst)
                 case "exit":
                     print("Goodbye!")
