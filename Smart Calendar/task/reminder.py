@@ -1,10 +1,23 @@
 import datetime
 import re
+from abc import ABC, abstractmethod
 
 
-class Reminder:
+class Reminder(ABC):
     def __init__(self, reminder_text : str):
         self.reminder_text = reminder_text
+
+    @abstractmethod
+    def get_date(self):
+        pass
+    @abstractmethod
+    def is_date(self, d):
+        pass
+
+    def get_text(self):
+        return self.reminder_text
+        
+    
 
 class BirthdayReminder(Reminder):
     def __init__(self, reminder_date : str, reminder_text : str):
@@ -14,10 +27,18 @@ class BirthdayReminder(Reminder):
         except ValueError:
             raise ValueError("Incorrect format")
 
-    def __str__(self):
+    def get_date(self):
         d = datetime.datetime.now()
         future_date = self.reminder_date.replace(year=d.year)
         if future_date < d: future_date = future_date.replace(year=d.year + 1)
+        return future_date
+
+    def is_date(self, d):
+        return self.get_date().month == d.month and self.get_date().day == d.day
+
+    def __str__(self):
+        future_date = self.get_date()
+        d = datetime.datetime.now()
 
         diff = future_date - d
         days = diff.days
@@ -37,6 +58,13 @@ class NoteReminder(Reminder):
         except ValueError:
             raise ValueError("Incorrect format")
 
+    def is_date(self, d):
+        return self.get_date().year == d.year and self.get_date().month == d.month and self.get_date().day == d.day
+
+    def get_date(self):
+        d = datetime.datetime(self.reminder_time.year, self.reminder_time.month, self.reminder_time.day)
+        return d
+
     def __str__(self):
         d = datetime.datetime.now()
         diff = self.reminder_time - d
@@ -47,6 +75,9 @@ class NoteReminder(Reminder):
         if minutes == 60:
             minutes = 0
             hours += 1
+        if hours == 24:
+            days += 1
+            hours = 0
 
         return f"Note: \"{self.reminder_text}\". Remains: {days} day(s), {hours} hour(s), {minutes} minute(s)"
 
@@ -64,6 +95,47 @@ class ReminderList:
     def __str__(self):
         output = '\n'.join(str(obj) for obj in self.reminders_list)
         return output
+
+    def print_list(self, lst):
+        for reminder in lst:
+            print(reminder)
+
+    def view_reminders(self):
+        while True:
+            filter = input("Specify filter (all, date, text, birthdays, notes): ")
+            try:
+                match filter.lower():
+                    case "all":
+                        print(self)
+                    case "date":
+                        filter_date = input("Enter date in \"YYYY-MM-DD\" format: ")
+                        try:
+                            d = datetime.datetime.strptime(filter_date, "%Y-%m-%d")
+                        except ValueError:
+                            raise ValueError("Incorrect date or time values")
+                        lst = [rem for rem in self.reminders_list if rem.is_date(d)]
+                        self.print_list(lst)
+                    case "text":
+                        filter_text = input("Enter text: ")
+                        lst = [rem for rem in self.reminders_list if filter_text.lower() in rem.get_text().lower()]
+                        self.print_list(lst)
+                    case "birthdays":
+                        lst = [rem for rem in self.reminders_list if isinstance(rem, BirthdayReminder)]
+                        self.print_list(lst)
+                    case "notes":
+                        lst = [rem for rem in self.reminders_list if isinstance(rem, NoteReminder)]
+                        self.print_list(lst)
+                    case _:
+                        raise ValueError("Incorrect type")
+                break
+            except ValueError as e:
+                print(e)
+
+    def compare_date(self, param, d):
+        # if param.year != d.year: return False
+        if param.month != d.month: return False
+        if param.day != d.day: return False
+        return True
 
 
 class ReminderFactory:

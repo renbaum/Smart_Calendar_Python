@@ -17,17 +17,18 @@ if __name__ == "__main__":
                     reminder_type = input("Specify type (note, birthday): ")
                     lst = factory.create_reminders_list(reminder_type)
                     storage.add_reminders_list(lst)
+                    for rem in lst:
+                        print(rem)
+                    print()
                 case "exit":
                     print("Goodbye!")
                     break
                 case "view":
-                    print("Not implemented yet")
+                    storage.view_reminders()
                 case "delete":
                     print("Not implemented yet")
                 case _:
                     raise ValueError("Incorrect command")
-            print(storage)
-            break
         except ValueError as e:
             print(e)
 
