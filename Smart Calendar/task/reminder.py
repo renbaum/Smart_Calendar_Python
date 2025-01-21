@@ -16,6 +16,11 @@ class Reminder(ABC):
 
     def get_text(self):
         return self.reminder_text
+
+    def get_remaining_minutes(self):
+        d = datetime.datetime.now()
+        diff = self.get_date() - d
+        return diff.days * 24 * 60 + diff.seconds // 60
         
     
 
@@ -32,6 +37,7 @@ class BirthdayReminder(Reminder):
         future_date = self.reminder_date.replace(year=d.year)
         if future_date < d: future_date = future_date.replace(year=d.year + 1)
         return future_date
+
 
     def is_date(self, d):
         return self.get_date().month == d.month and self.get_date().day == d.day
@@ -102,7 +108,7 @@ class ReminderList:
 
     def view_reminders(self):
         while True:
-            filter = input("Specify filter (all, date, text, birthdays, notes): ")
+            filter = input("Specify filter (all, date, text, birthdays, notes, sorted): ")
             try:
                 match filter.lower():
                     case "all":
@@ -125,6 +131,15 @@ class ReminderList:
                     case "notes":
                         lst = [rem for rem in self.reminders_list if isinstance(rem, NoteReminder)]
                         self.print_list(lst)
+                    case "sorted":
+                        sort_way = input("Specify way (ascending, descending): ")
+                        if sort_way.lower() == "ascending":
+                            self.reminders_list.sort(key=lambda x: (x.get_remaining_minutes(), x.get_text()))
+                        elif sort_way.lower() == "descending":
+                            self.reminders_list.sort(key=lambda x: (x.get_remaining_minutes(), x.get_text()), reverse=True)
+                        else:
+                            raise ValueError("Incorrect way")
+                        self.print_list(self.reminders_list)
                     case _:
                         raise ValueError("Incorrect type")
                 break
@@ -136,6 +151,21 @@ class ReminderList:
         if param.month != d.month: return False
         if param.day != d.day: return False
         return True
+
+    def delete(self):
+        for number , reminder in enumerate(self.reminders_list, start=1):
+            print(f"{number}. {reminder}")
+        xy = input("Enter ids:").split(",")
+        delete_list = [int(ddd) for ddd in xy]
+        delete_list.sort(reverse=True)
+        for number in delete_list:
+            self.remove(number - 1)
+
+    def remove(self, param):
+        try:
+            del self.reminders_list[param]
+        except Exception:
+            pass
 
 
 class ReminderFactory:

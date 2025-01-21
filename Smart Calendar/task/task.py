@@ -26,7 +26,7 @@ if __name__ == "__main__":
                 case "view":
                     storage.view_reminders()
                 case "delete":
-                    print("Not implemented yet")
+                    storage.delete()
                 case _:
                     raise ValueError("Incorrect command")
         except ValueError as e:
