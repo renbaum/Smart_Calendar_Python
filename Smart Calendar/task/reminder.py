@@ -91,12 +91,39 @@ class NoteReminder(Reminder):
 class ReminderList:
     def __init__(self):
         self.reminders_list = []
+        self.load_reminders()
+
+    def load_reminders(self):
+        self.reminders_list = []
+        try:
+            with open("data.txt", "r") as f:
+                for line in f:
+                    line = line.strip()
+                    params = line.split(";")
+                    match params[0]:
+                        case "Note":
+                            self.reminders_list.append(NoteReminder(params[1], params[2]))
+                        case "Birthday":
+                            self.reminders_list.append(BirthdayReminder(params[1], params[2]))
+        except FileNotFoundError:
+            pass
+
+    def save_reminders(self):
+        with open("data.txt", "w") as f:
+            for reminder in self.reminders_list:
+                if isinstance(reminder, BirthdayReminder):
+                    f.write(f"Birthday;{reminder.reminder_date.strftime('%Y-%m-%d')};{reminder.reminder_text}\n")
+                elif isinstance(reminder, NoteReminder):
+                    f.write(f"Note;{reminder.reminder_time.strftime('%Y-%m-%d %H:%M')};{reminder.reminder_text}\n")
+                else:
+                    raise ValueError("Incorrect type")
 
     def add_reminder(self, reminder : Reminder):
         self.reminders_list.append(reminder)
 
     def add_reminders_list(self, reminders_list : list):
         self.reminders_list.extend(reminders_list)
+        self.save_reminders()
 
     def __str__(self):
         output = '\n'.join(str(obj) for obj in self.reminders_list)
@@ -160,6 +187,7 @@ class ReminderList:
         delete_list.sort(reverse=True)
         for number in delete_list:
             self.remove(number - 1)
+        self.save_reminders()
 
     def remove(self, param):
         try:
